@@ -305,5 +305,5 @@ GST_PLUGIN_DEFINE (
         "1.0.1",
         "LGPL",
         "Gstreamer",
-        "https://github.com/karimdavoodi/iptv_mpegts_crypt"
+        "https://github.com/karimdavoodi/gst_mpegts_crypt"
         )
