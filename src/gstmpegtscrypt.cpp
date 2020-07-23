@@ -124,7 +124,7 @@ static void gst_mpegts_crypt_class_init (GstMpegtsCryptClass * klass)
             g_param_spec_enum ("method", "Method", 
                 "Method of cryptography",
                 GST_TYPE_MPEGTSCRYPT_METHOD,
-                MPEGTSCRYPT_METHOD_AES128_ECB,
+                MPEGTSCRYPT_METHOD_BISS,
                 G_PARAM_READWRITE  ));
     g_object_class_install_property (gobject_class, PROP_KEY,
             g_param_spec_string ("key", "Key", 

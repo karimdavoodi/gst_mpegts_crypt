@@ -40,7 +40,7 @@ Plugin Details:
   License                  LGPL
   Source module            mpegtscrypt
   Binary package           Gstreamer
-  Origin URL               https://github.com/karimdavoodi/iptv_mpegts_crypt
+  Origin URL               https://github.com/karimdavoodi/gst_mpegts_crypt
 
 GObject
  +----GInitiallyUnowned
@@ -76,8 +76,10 @@ Element Properties:
                         flags: readable, writable
                         Enum "GstMpegTsCryptMethod" Default: 0, "biss"
                            (0): biss             - BISS Method
-                           (1): aes128           - AES128 Method
-                           (2): aes256           - AES256 Method
+                           (1): aes128_ecb       - AES128 ECB Method
+                           (2): aes128_cbc       - AES128 CBC Method
+                           (3): aes256_ecb       - AES256 ECB Method
+                           (4): aes256_cbc       - AES256 CBC Method
   name                : The name of the object
                         flags: readable, writable
                         String. Default: "mpegtscrypt0"
