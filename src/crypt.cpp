@@ -1,6 +1,5 @@
 #include <iostream>
 #include <gst/gst.h>
-
 #include "gstmpegtscrypt.hpp"
 
 using namespace std;
@@ -85,9 +84,8 @@ uint8_t ts_packet_get_payload_offset(uint8_t *ts_packet) {
 void crypt_packet_aes(GstMpegtsCrypt* filter, uint8_t *ts_packet) {
 
     unsigned int payload_offset = ts_packet_get_payload_offset(ts_packet);
-    GST_LOG_OBJECT(filter, "payload size: %d", 188 - payload_offset);
-
-    for(int i=payload_offset; i<188; i+=16){
+    // TODO: the last remaind of 16 bytes not crypt
+    for(int i=payload_offset; i<188-16; i+=16){
         auto *in =  ts_packet + i;
         auto *out = ts_packet + i;
         if(filter->operation == MPEGTSCRYPT_OPERATION_ENC)
@@ -119,40 +117,6 @@ void crypt_packet_biss(GstMpegtsCrypt* filter, uint8_t *ts_packet) {
                     188 - payload_offset);
         }else GST_WARNING_OBJECT(filter, "Ts packet is not scrambled");
     }
-}
-GstBuffer* crypt_process_buffer(GstMpegtsCrypt*  filter, GstBuffer* buf)
-{
-    GstMapInfo map;
-    GST_LOG_OBJECT(filter, "crypt buffer by key = %s", filter->key);
-    buf = gst_buffer_make_writable(buf);
-    if(!buf){
-        GST_ERROR_OBJECT(filter, "Can't make buffer to be writeable");
-        return buf;
-    }
-    gst_buffer_map(buf, &map, GST_MAP_READWRITE);
-
-    uint8_t* s = map.data;
-    if(s[0] == 0x47){
-        for(int i=0; i<map.size; i += 188) {
-            uint8_t *ts_packet = s + i;
-            if(i+188 <= map.size){
-                switch(filter->method){
-                    case MPEGTSCRYPT_METHOD_BISS:
-                        crypt_packet_biss(filter, ts_packet);
-                        break;
-                    case MPEGTSCRYPT_METHOD_AES128:
-                    case MPEGTSCRYPT_METHOD_AES256:
-                        crypt_packet_aes(filter, ts_packet);
-                        break;
-                }
-
-            }else GST_WARNING_OBJECT(filter, "Invalid ts packet size:%ld",map.size - i);
-        }
-
-    }else GST_WARNING_OBJECT(filter, "Packet not start by 0x47. pkt size:%ld", map.size);
-
-    gst_buffer_unmap(buf, &map);
-    return buf;
 }
 void crypt_finish(GstMpegtsCrypt* filter)
 {

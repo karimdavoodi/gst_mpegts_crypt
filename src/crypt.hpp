@@ -19,6 +19,6 @@ extern "C" {
 }
 void crypt_init(GstMpegtsCrypt* filter);
 void crypt_finish(GstMpegtsCrypt* filter);
-GstBuffer* crypt_process_buffer(GstMpegtsCrypt*  filter, GstBuffer* buf);
+        
 void crypt_packet_aes(GstMpegtsCrypt* filter, unsigned char *ts_packet);
 void crypt_packet_biss(GstMpegtsCrypt* filter, unsigned char *ts_packet);

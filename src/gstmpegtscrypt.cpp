@@ -235,6 +235,26 @@ static gboolean gst_mpegts_crypt_sink_event (GstPad * pad, GstObject * parent,
     return ret;
 }
 
+bool  check_adapter_contents_ts(GstMpegtsCrypt* filter, GstAdapter* adapter)
+{
+    auto data = (const unsigned char*) gst_adapter_map(adapter, TS_PACKET_SIZE);
+    int k = 0;
+    if(data[0] != 0x47){
+        for(size_t i=0; i<TS_PACKET_SIZE; ++i){
+            if(data[i] == 0x47){
+                k = i;  
+                break;
+            }
+        }
+    }
+    gst_adapter_unmap(adapter);
+    if(k > 0){
+        GST_WARNING_OBJECT(filter, "buffer not start by 0x47. ignore size %d", k);
+        gst_adapter_flush(adapter, k);
+        return false;
+    }
+    return true;
+}
 
 static GstFlowReturn gst_mpegts_crypt_chain (GstPad * pad, GstObject * parent, GstBuffer * buf)
 {
@@ -244,28 +264,15 @@ static GstFlowReturn gst_mpegts_crypt_chain (GstPad * pad, GstObject * parent, G
     GstMapInfo map;
 
     GST_LOG_OBJECT(filter, "got buffer size:%ld", gst_buffer_get_size(buf));
-    
+
     gst_adapter_push (adapter, buf);
 
-    
+
     // while we can read out TS_PACKET_SIZE bytes, process them
     while ((gst_adapter_available (adapter) >= TS_PACKET_SIZE ) && ret == GST_FLOW_OK) {
-        auto data = (const unsigned char*) gst_adapter_map(adapter, TS_PACKET_SIZE);
-        int k = 0;
-        if(data[0] != 0x47){
-            for(size_t i=0; i<TS_PACKET_SIZE; ++i){
-                if(data[i] == 0x47){
-                  k = i;  
-                  break;
-                }
-            }
-        }
-        gst_adapter_unmap(adapter);
-        if(k>0){
-            GST_LOG_OBJECT(filter, "buffer not start by 0x47. ignore size %d", k);
-            gst_adapter_flush(adapter, k);
+
+        if(!check_adapter_contents_ts(filter, adapter)) 
             continue;
-        }
 
         GstBuffer* buffer = gst_adapter_take_buffer(adapter, TS_PACKET_SIZE);
         gst_buffer_map(buffer, &map, GST_MAP_READWRITE);
