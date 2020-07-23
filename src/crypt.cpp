@@ -88,12 +88,38 @@ void crypt_packet_aes(GstMpegtsCrypt* filter, uint8_t *ts_packet) {
     for(int i=payload_offset; i<188-16; i+=16){
         auto *in =  ts_packet + i;
         auto *out = ts_packet + i;
-        if(filter->operation == MPEGTSCRYPT_OPERATION_ENC)
-            AES_cbc_encrypt (in , out, 16, &(filter->aes_enc_key), 
-                    filter->aes_iv_enc, AES_ENCRYPT);
-        else
-            AES_cbc_encrypt (in , out, 16, &(filter->aes_dec_key), 
-                    filter->aes_iv_dec, AES_DECRYPT);
+        switch(filter->method){
+            case MPEGTSCRYPT_METHOD_AES128_CBC:
+                if(filter->operation == MPEGTSCRYPT_OPERATION_ENC)
+                    AES_cbc_encrypt (in , out, 16, &(filter->aes_enc_key), 
+                            filter->aes_iv_enc, AES_ENCRYPT);
+                else
+                    AES_cbc_encrypt (in , out, 16, &(filter->aes_dec_key), 
+                            filter->aes_iv_dec, AES_DECRYPT);
+                break;
+            case MPEGTSCRYPT_METHOD_AES128_ECB:
+                if(filter->operation == MPEGTSCRYPT_OPERATION_ENC)
+                    AES_ecb_encrypt (in , out, &(filter->aes_enc_key), AES_ENCRYPT);
+                else
+                    AES_ecb_encrypt (in , out, &(filter->aes_dec_key), AES_DECRYPT);
+                break;
+            case MPEGTSCRYPT_METHOD_AES256_CBC:
+                if(filter->operation == MPEGTSCRYPT_OPERATION_ENC)
+                    AES_cbc_encrypt (in , out, 16, &(filter->aes_enc_key), 
+                            filter->aes_iv_enc, AES_ENCRYPT);
+                else
+                    AES_cbc_encrypt (in , out, 16, &(filter->aes_dec_key), 
+                            filter->aes_iv_dec, AES_DECRYPT);
+                break;
+            case MPEGTSCRYPT_METHOD_AES256_ECB:
+                if(filter->operation == MPEGTSCRYPT_OPERATION_ENC)
+                    AES_ecb_encrypt (in , out, &(filter->aes_enc_key), AES_ENCRYPT);
+                else
+                    AES_ecb_encrypt (in , out, &(filter->aes_dec_key), AES_DECRYPT);
+                break;
+            default:
+                break;
+        }
     }
 }
 void crypt_packet_biss(GstMpegtsCrypt* filter, uint8_t *ts_packet) {
@@ -126,8 +152,7 @@ void crypt_finish(GstMpegtsCrypt* filter)
             dvbcsa_key_free(filter->biss_csakey[0]);
             dvbcsa_key_free(filter->biss_csakey[1]);
             break;
-        case MPEGTSCRYPT_METHOD_AES128: 
-        case MPEGTSCRYPT_METHOD_AES256: 
+        default:
             break;
     }
 
@@ -143,9 +168,11 @@ void crypt_init(GstMpegtsCrypt* filter)
             _init_biss_key(filter, string(filter->key) );
             break;
 
-        case MPEGTSCRYPT_METHOD_AES128:
+        case MPEGTSCRYPT_METHOD_AES128_ECB:
+        case MPEGTSCRYPT_METHOD_AES128_CBC:
             aes_bit = 128;
-        case MPEGTSCRYPT_METHOD_AES256: 
+        case MPEGTSCRYPT_METHOD_AES256_ECB:
+        case MPEGTSCRYPT_METHOD_AES256_CBC:
             AES_set_encrypt_key((const unsigned char*)filter->key, aes_bit, 
                     &(filter->aes_enc_key));
             AES_set_decrypt_key((const unsigned char*)filter->key, aes_bit, 

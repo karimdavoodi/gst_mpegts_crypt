@@ -32,9 +32,11 @@ static GType gst_mpegtscrypt_method_get_type (void)
     static GType mpegtscrypt_method_type = 0;
     if (!mpegtscrypt_method_type) {
         static GEnumValue pattern_types[] = {
-            { MPEGTSCRYPT_METHOD_BISS , "BISS Method", "biss" },
-            { MPEGTSCRYPT_METHOD_AES128 , "AES128 Method", "aes128" },
-            { MPEGTSCRYPT_METHOD_AES256 , "AES256 Method", "aes256" },
+            { MPEGTSCRYPT_METHOD_BISS ,       "BISS Method", "biss" },
+            { MPEGTSCRYPT_METHOD_AES128_ECB , "AES128 ECB Method", "aes128_ecb" },
+            { MPEGTSCRYPT_METHOD_AES128_CBC , "AES128 CBC Method", "aes128_cbc" },
+            { MPEGTSCRYPT_METHOD_AES256_ECB , "AES256 ECB Method", "aes256_ecb" },
+            { MPEGTSCRYPT_METHOD_AES256_CBC , "AES256 CBC Method", "aes256_cbc" },
             { 0, NULL, NULL },
         };
         mpegtscrypt_method_type =
@@ -122,7 +124,7 @@ static void gst_mpegts_crypt_class_init (GstMpegtsCryptClass * klass)
             g_param_spec_enum ("method", "Method", 
                 "Method of cryptography",
                 GST_TYPE_MPEGTSCRYPT_METHOD,
-                MPEGTSCRYPT_METHOD_BISS,
+                MPEGTSCRYPT_METHOD_AES128_ECB,
                 G_PARAM_READWRITE  ));
     g_object_class_install_property (gobject_class, PROP_KEY,
             g_param_spec_string ("key", "Key", 
@@ -281,8 +283,10 @@ static GstFlowReturn gst_mpegts_crypt_chain (GstPad * pad, GstObject * parent, G
             case MPEGTSCRYPT_METHOD_BISS:
                 crypt_packet_biss(filter, map.data);
                 break;
-            case MPEGTSCRYPT_METHOD_AES128:
-            case MPEGTSCRYPT_METHOD_AES256:
+            case MPEGTSCRYPT_METHOD_AES128_ECB:
+            case MPEGTSCRYPT_METHOD_AES128_CBC:
+            case MPEGTSCRYPT_METHOD_AES256_ECB:
+            case MPEGTSCRYPT_METHOD_AES256_CBC:
                 crypt_packet_aes(filter, map.data);
                 break;
         }
